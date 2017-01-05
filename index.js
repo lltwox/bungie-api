@@ -140,9 +140,9 @@ BungieApi.prototype.doRequest = function(path) {
     if (response.statusCode == 404) {
       return null; // not found = empty response
     } else if (response.statusCode != 200) {
-      var error = new Error('INVALID_STATUS_CODE');
-      error.code = response.statusCode;
-      throw error;
+      var statusError = new Error('INVALID_STATUS_CODE');
+      statusError.code = response.statusCode;
+      throw statusError;
     }
 
     var data;
@@ -155,14 +155,15 @@ BungieApi.prototype.doRequest = function(path) {
     if (data.ErrorStatus != 'Success') {
       if (BungieApi.NO_DATA_ERRORS.indexOf(data.ErrorCode) >= 0) return null;
 
-      var error = new Error(body);
-      error.code = data.ErrorCode;
-      throw error;
+      var dataError = new Error(body);
+      dataError.code = data.ErrorCode;
+      throw dataError;
     }
 
     return data.Response;
   })
   .catch(function(err) {
+    err.originalMessage = err.message;
     err.message = this.homeUrl + path + ' failed: ' + err.message;
     throw err;
   });
