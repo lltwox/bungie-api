@@ -12,6 +12,9 @@ request.getAsync = Promise.promisify(request.get, {multiArgs: true});
  * @param {Object} options
  */
 function BungieApi(options) {
+  this.homeUrl = BungieApi.HOME_URL;
+  this.debugUrl = this.homeUrl;
+
   this.configure(options);
 }
 
@@ -84,9 +87,9 @@ BungieApi.NO_DATA_ERRORS = [
  */
 BungieApi.prototype.configure = function(options) {
   options = options || {};
-  this.apiKey = options.apiKey;
-  this.homeUrl = options.homeUrl || BungieApi.HOME_URL;
-  this.debugUrl = options.debugUrl || options.homeUrl;
+  if (options.apiKey) this.apiKey = options.apiKey;
+  if (options.homeUrl) this.homeUrl = options.homeUrl;
+  if (options.debugUrl) this.debugUrl = options.debugUrl;
 };
 
 /**
