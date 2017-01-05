@@ -1,8 +1,7 @@
 var querystring = require('querystring'),
     Promise = require('bluebird'),
     request = require('request'),
-    _ = require('lodash'),
-    debug = require('debug')('bungie-api');
+    _ = require('lodash');
 
 request.getAsync = Promise.promisify(request.get, {multiArgs: true});
 
@@ -105,7 +104,7 @@ BungieApi.prototype.request = function(path, params) {
 
   return this.doRequest(path)
   .catch(function(err) {
-    debug(err.message);
+    this.debug(err.message);
 
     var bungieErr = new Error(BungieApi.ERROR);
     bungieErr.originalErr = err;
@@ -121,10 +120,10 @@ BungieApi.prototype.request = function(path, params) {
  * @private
  */
 BungieApi.prototype.doRequest = function(path) {
-  debug('request:', this.debugUrl + path);
+  this.debug('request: ' + this.debugUrl + path);
 
   return request.getAsync({
-    url: path,
+    url: this.homeUrl + path,
     headers: {
       'User-Agent':
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10)' +
@@ -197,7 +196,7 @@ BungieApi.prototype.parsePath = function(path, params) {
     }
   }
 
-  return this.homeUrl + path;
+  return path;
 };
 
 /**
@@ -207,6 +206,18 @@ BungieApi.prototype.parsePath = function(path, params) {
 BungieApi.prototype.getApiKey = function() {
   if (!this.apiKey) throw new Error('Bungie API key is not defined');
   return this.apiKey;
+};
+
+/**
+ * Delayer debug require, to make time for in-app modifications of environment
+ *
+ * @param {String} message
+ * @private
+ */
+var debug;
+BungieApi.prototype.debug = function(message) {
+  if (!debug) debug = require('debug')('bungie-api');
+  debug(message);
 };
 
 module.exports = new BungieApi();
