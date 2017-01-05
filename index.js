@@ -1,8 +1,10 @@
 var querystring = require('querystring'),
     Promise = require('bluebird'),
-    request = Promise.promisifyAll(require('request'), {multiArgs: true}),
+    request = require('request'),
     _ = require('lodash'),
     debug = require('debug')('bungie-api');
+
+request.getAsync = Promise.promisify(request.get, {multiArgs: true});
 
 /**
  * Adapter for bungie api
@@ -52,13 +54,15 @@ BungieApi.PATHS = {
  * @type {Object}
  */
 BungieApi.ERROR_CODES = {
+  UNHANDLED_EXCEPTION: 3,
   MAINTENANCE: 5,
   THROTTLE_EXCEED: 51,
   INVALID_ACCOUNT: 1600,
   INVALID_ACCOUNT_2: 1601,
-  LEGACY_ACCOUNT: 1670,
+  NO_VENDOR: 1627,
+  DESTINY_SHARD_RELAY_CLIENT_TIMEOUT: 1651,
   NO_ACTIVITY: 1653,
-  NO_VENDOR: 1627
+  LEGACY_ACCOUNT: 1670,
 };
 
 /**
@@ -82,6 +86,7 @@ BungieApi.prototype.configure = function(options) {
   options = options || {};
   this.apiKey = options.apiKey;
   this.homeUrl = options.homeUrl || BungieApi.HOME_URL;
+  this.debugUrl = options.debugUrl || options.homeUrl;
 };
 
 /**
@@ -93,9 +98,9 @@ BungieApi.prototype.configure = function(options) {
  */
 BungieApi.prototype.request = function(path, params) {
   if (!path) throw new Error('No path specified');
-  path = this.parsePath(path, _.clone(params));
+  path = this.parsePath(path, _.clone(params || {}));
 
-  return this.tryRequest(path)
+  return this.doRequest(path)
   .catch(function(err) {
     debug(err.message);
 
@@ -112,8 +117,8 @@ BungieApi.prototype.request = function(path, params) {
  * @return {Promise}
  * @private
  */
-BungieApi.prototype.tryRequest = function(path) {
-  debug('request:', path);
+BungieApi.prototype.doRequest = function(path) {
+  debug('request:', this.debugUrl + path);
 
   return request.getAsync({
     url: path,
@@ -132,7 +137,9 @@ BungieApi.prototype.tryRequest = function(path) {
     if (response.statusCode == 404) {
       return null; // not found = empty response
     } else if (response.statusCode != 200) {
-      throw new Error('Invalid status code: ' + response.statusCode);
+      var error = new Error('INVALID_STATUS_CODE');
+      error.code = response.statusCode;
+      throw error;
     }
 
     var data;
@@ -153,7 +160,7 @@ BungieApi.prototype.tryRequest = function(path) {
     return data.Response;
   })
   .catch(function(err) {
-    err.message = path + ' failed: ' + err.message;
+    err.message = this.homeUrl + path + ' failed: ' + err.message;
     throw err;
   });
 };
