@@ -46,6 +46,8 @@ BungieApi.PATHS = {
   GET_HISTORICAL_STATS: 'platform/Destiny/Stats/:membershipType/:membershipId/:characterId',
   GET_HISTORICAL_STATS_FOR_ACCOUNT: 'platform/Destiny/Stats/Account/:membershipType/:membershipId',
   GET_POST_GAME_CARNAGE_REPORT: 'platform/Destiny/Stats/PostGameCarnageReport/:activityId/',
+  GET_PUBLIC_ADVISORS: 'platform/Destiny/Advisors/',
+  GET_PUBLIC_ADVISORS_V2: 'platform/Destiny/Advisors/V2',
   GET_PUBLIC_VENDOR: 'platform/Destiny/Vendors/:vendorId/',
   SEARCH_DESTINY_PLAYER: 'platform/Destiny/SearchDestinyPlayer/:membershipType/:gamertag',
 };
