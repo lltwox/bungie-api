@@ -13,6 +13,7 @@ request.getAsync = Promise.promisify(request.get, {multiArgs: true});
 function BungieApi(options) {
   this.homeUrl = BungieApi.HOME_URL;
   this.debugUrl = this.homeUrl;
+  this.destinyVersion = BungieApi.DESTINY_VERSION_1;
 
   this.configure(options);
 }
@@ -33,24 +34,39 @@ BungieApi.PARAMS_PATTERN = /:\w+/g;
 BungieApi.ERROR = 'bungie_error';
 
 /**
+ * Versions of destiny api
+ *
+ * @type {Number}
+ */
+BungieApi.DESTINY_VERSION_1 = 'v1';
+BungieApi.DESTINY_VERSION_2 = 'v2';
+BungieApi.DESTINY_VERSIONS = [
+  BungieApi.DESTINY_VERSION_1,
+  BungieApi.DESTINY_VERSION_2
+];
+
+/**
  * Pre-defined paths
  *
  * @type {Object}
  */
 BungieApi.PATHS = {
-  GET_GLOBAL_ALERTS: 'platform/GlobalAlerts',
-  GET_DESTINY_MANIFEST: '/platform/Destiny/Manifest',
-  GET_ACCOUNT_SUMMARY: 'platform/Destiny/:membershipType/Account/:membershipId/Summary',
-  GET_ACTIVITY_HISTORY: 'platform/Destiny/Stats/ActivityHistory/:membershipType/:membershipId/:characterId?mode=:mode',
-  GET_CHARACTER_INVENTORY: 'platform/Destiny/:membershipType/Account/:membershipId/Character/:characterId/Inventory',
-  GET_HISTORICAL_STATS: 'platform/Destiny/Stats/:membershipType/:membershipId/:characterId',
-  GET_HISTORICAL_STATS_FOR_ACCOUNT: 'platform/Destiny/Stats/Account/:membershipType/:membershipId',
-  GET_POST_GAME_CARNAGE_REPORT: 'platform/Destiny/Stats/PostGameCarnageReport/:activityId/',
-  GET_PUBLIC_ADVISORS: 'platform/Destiny/Advisors/',
-  GET_PUBLIC_ADVISORS_V2: 'platform/Destiny/Advisors/V2',
-  GET_PUBLIC_VENDOR: 'platform/Destiny/Vendors/:vendorId/',
-  SEARCH_DESTINY_PLAYER: 'platform/Destiny/SearchDestinyPlayer/:membershipType/:gamertag',
+  GET_GLOBAL_ALERTS: 'platform/GlobalAlerts'
 };
+BungieApi.PATHS[BungieApi.DESTINY_VERSION_1] = {
+  GET_DESTINY_MANIFEST: 'd1/platform/Destiny/Manifest',
+  GET_ACCOUNT_SUMMARY: 'd1/platform/Destiny/:membershipType/Account/:membershipId/Summary',
+  GET_ACTIVITY_HISTORY: 'd1/platform/Destiny/Stats/ActivityHistory/:membershipType/:membershipId/:characterId?mode=:mode',
+  GET_CHARACTER_INVENTORY: 'd1/platform/Destiny/:membershipType/Account/:membershipId/Character/:characterId/Inventory',
+  GET_HISTORICAL_STATS: 'd1/platform/Destiny/Stats/:membershipType/:membershipId/:characterId',
+  GET_HISTORICAL_STATS_FOR_ACCOUNT: 'd1/platform/Destiny/Stats/Account/:membershipType/:membershipId',
+  GET_POST_GAME_CARNAGE_REPORT: 'd1/platform/Destiny/Stats/PostGameCarnageReport/:activityId/',
+  GET_PUBLIC_ADVISORS: 'd1/platform/Destiny/Advisors/',
+  GET_PUBLIC_ADVISORS_V2: 'd1/platform/Destiny/Advisors/V2',
+  GET_PUBLIC_VENDOR: 'd1/platform/Destiny/Vendors/:vendorId/',
+  SEARCH_DESTINY_PLAYER: 'd1/platform/Destiny/SearchDestinyPlayer/:membershipType/:gamertag',
+};
+BungieApi.PATHS[BungieApi.DESTINY_VERSION_2] = {};
 
 /**
  * Known error codes
@@ -91,6 +107,12 @@ BungieApi.prototype.configure = function(options) {
   if (options.apiKey) this.apiKey = options.apiKey;
   if (options.homeUrl) this.homeUrl = options.homeUrl;
   if (options.debugUrl) this.debugUrl = options.debugUrl;
+
+  if (options.destinyVersion &&
+    BungieApi.DESTINY_VERSIONS.indexOf(options.destinyVersion) >= 0
+  ) {
+    this.destinyVersion = options.destinyVersion;
+  }
 };
 
 /**
@@ -176,9 +198,11 @@ BungieApi.prototype.doRequest = function(path) {
  * @private
  */
 BungieApi.prototype.parsePath = function(path, params) {
-  if (!BungieApi.PATHS[path]) return path;
+  if (!BungieApi.PATHS[path] &&
+    !BungieApi.PATHS[this.destinyVersion][path]
+  ) return path;
 
-  path = BungieApi.PATHS[path];
+  path = BungieApi.PATHS[this.destinyVersion][path] || BungieApi.PATHS[path];
   var placeholders = path.match(BungieApi.PARAMS_PATTERN);
   if (placeholders) {
     placeholders.forEach(function(field) {
@@ -211,7 +235,7 @@ BungieApi.prototype.getApiKey = function() {
 };
 
 /**
- * Delayer debug require, to make time for in-app modifications of environment
+ * Delayed debug require, to make time for in-app modifications of environment
  *
  * @param {String} message
  * @private
@@ -227,3 +251,5 @@ module.exports.BungieApi = BungieApi;
 module.exports.ERROR = BungieApi.ERROR;
 module.exports.ERROR_CODES = BungieApi.ERROR_CODES;
 module.exports.ERROR_NAMES = _.invert(BungieApi.ERROR_CODES);
+module.exports.DESTINY_VERSION_1 = BungieApi.DESTINY_VERSION_1;
+module.exports.DESTINY_VERSION_2 = BungieApi.DESTINY_VERSION_2;
