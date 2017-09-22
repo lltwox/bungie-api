@@ -7,7 +7,7 @@
   "author": "Alexander Golubev <lltwox@gmail.com>",
   "dependencies": {
     "bluebird": "^3.4.6",
-    "debug": "^2.2.0",
+    "debug": "^2.6.3",
     "lodash": "^4.15.0",
     "request": "^2.75.0"
   }

@@ -51,7 +51,9 @@ BungieApi.DESTINY_VERSIONS = [
  * @type {Object}
  */
 BungieApi.PATHS = {
-  GET_GLOBAL_ALERTS: 'platform/GlobalAlerts'
+  GET_GLOBAL_ALERTS: 'platform/GlobalAlerts',
+  GET_BUNGIE_ACCOUNT: 'platform/User/GetBungieAccount/:membershipId/:membershipType',
+  GET_MEMBERSHIP_DATA_BY_ID: 'platform/User/GetMembershipsById/:membershipId/:membershipType',
 };
 BungieApi.PATHS[BungieApi.DESTINY_VERSION_1] = {
   GET_DESTINY_MANIFEST: 'd1/platform/Destiny/Manifest',
@@ -66,7 +68,12 @@ BungieApi.PATHS[BungieApi.DESTINY_VERSION_1] = {
   GET_PUBLIC_VENDOR: 'd1/platform/Destiny/Vendors/:vendorId/',
   SEARCH_DESTINY_PLAYER: 'd1/platform/Destiny/SearchDestinyPlayer/:membershipType/:gamertag',
 };
-BungieApi.PATHS[BungieApi.DESTINY_VERSION_2] = {};
+BungieApi.PATHS[BungieApi.DESTINY_VERSION_2] = {
+  GET_PROFILE: 'platform/Destiny2/:membershipType/Profile/:membershipId',
+  SEARCH_DESTINY_PLAYER: 'platform/Destiny2/SearchDestinyPlayer/:membershipType/:gamertag',
+  GET_HISTORICAL_STATS: 'platform/Destiny2/:membershipType/Account/:membershipId/Character/:characterId/Stats',
+  GET_HISTORICAL_STATS_FOR_ACCOUNT: 'platform/Destiny2/:membershipType/Account/:membershipId/Stats'
+};
 
 /**
  * Known error codes
@@ -106,6 +113,7 @@ BungieApi.prototype.configure = function(options) {
   options = options || {};
   if (options.apiKey) this.apiKey = options.apiKey;
   if (options.homeUrl) this.homeUrl = options.homeUrl;
+  if (options.debug) this.debug = options.debug;
   if (options.debugUrl) this.debugUrl = options.debugUrl;
 
   if (options.destinyVersion &&
@@ -189,7 +197,7 @@ BungieApi.prototype.doRequest = function(path) {
     err.originalMessage = err.message;
     err.message = this.homeUrl + path + ' failed: ' + err.message;
     throw err;
-  });
+  }.bind(this));
 };
 
 /**
@@ -198,11 +206,11 @@ BungieApi.prototype.doRequest = function(path) {
  * @private
  */
 BungieApi.prototype.parsePath = function(path, params) {
-  if (!BungieApi.PATHS[path] &&
-    !BungieApi.PATHS[this.destinyVersion][path]
-  ) return path;
+  var version = params.destinyVersion || this.destinyVersion;
+  if (!BungieApi.PATHS[path] && !BungieApi.PATHS[version][path]) return path;
 
-  path = BungieApi.PATHS[this.destinyVersion][path] || BungieApi.PATHS[path];
+  delete params.destinyVersion;
+  path = BungieApi.PATHS[version][path] || BungieApi.PATHS[path];
   var placeholders = path.match(BungieApi.PARAMS_PATTERN);
   if (placeholders) {
     placeholders.forEach(function(field) {
@@ -240,10 +248,17 @@ BungieApi.prototype.getApiKey = function() {
  * @param {String} message
  * @private
  */
-var debug;
+var logger;
 BungieApi.prototype.debug = function(message) {
-  if (!debug) debug = require('debug')('bungie-api');
-  debug(message);
+  if (!this.debug) return;
+
+  if (!logger) {
+    var debug = require('debug');
+    debug.enable('*bungie-api*');
+    logger = debug('bungie-api');
+  }
+
+  logger(message);
 };
 
 module.exports = new BungieApi();
