@@ -113,7 +113,7 @@ BungieApi.prototype.configure = function(options) {
   options = options || {};
   if (options.apiKey) this.apiKey = options.apiKey;
   if (options.homeUrl) this.homeUrl = options.homeUrl;
-  if (options.debug) this.debug = options.debug;
+  if (options.debugOn) this.debugOn = options.debugOn;
   if (options.debugUrl) this.debugUrl = options.debugUrl;
 
   if (options.destinyVersion &&
@@ -250,7 +250,7 @@ BungieApi.prototype.getApiKey = function() {
  */
 var logger;
 BungieApi.prototype.debug = function(message) {
-  if (!this.debug) return;
+  if (!this.debugOn) return;
 
   if (!logger) {
     var debug = require('debug');
