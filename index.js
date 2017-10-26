@@ -216,7 +216,9 @@ BungieApi.prototype.parsePath = function(path, params) {
     placeholders.forEach(function(field) {
       field = field.substring(1);
       if (!params[field]) throw new Error('Missing value for :' + field);
-      path = path.replace(':' + field, params[field]);
+      try {
+        path = path.replace(':' + field, encodeURIComponent(params[field]));
+      } catch (err) { /* some weird utf error */ }
       delete params[field];
     });
   }
