@@ -69,6 +69,7 @@ BungieApi.PATHS[BungieApi.DESTINY_VERSION_1] = {
   SEARCH_DESTINY_PLAYER: 'd1/platform/Destiny/SearchDestinyPlayer/:membershipType/:gamertag',
 };
 BungieApi.PATHS[BungieApi.DESTINY_VERSION_2] = {
+  GET_DESTINY_MANIFEST: 'platform/Destiny2/Manifest',
   GET_PROFILE: 'platform/Destiny2/:membershipType/Profile/:membershipId',
   SEARCH_DESTINY_PLAYER: 'platform/Destiny2/SearchDestinyPlayer/:membershipType/:gamertag',
   GET_HISTORICAL_STATS: 'platform/Destiny2/:membershipType/Account/:membershipId/Character/:characterId/Stats',
@@ -265,6 +266,7 @@ BungieApi.prototype.debug = function(message) {
 
 module.exports = new BungieApi();
 module.exports.BungieApi = BungieApi;
+module.exports.HOME_URL = BungieApi.HOME_URL;
 module.exports.ERROR = BungieApi.ERROR;
 module.exports.ERROR_CODES = BungieApi.ERROR_CODES;
 module.exports.ERROR_NAMES = _.invert(BungieApi.ERROR_CODES);
